@@ -4,7 +4,7 @@ import joblib
 import os
 
 # Load the trained model
-MODEL_PATH = os.path.join("models", "best_model.pkl")
+MODEL_PATH = "best_model.pkl"
 model = joblib.load(MODEL_PATH)
 
 # Call this exactly ONCE at the top
@@ -21,10 +21,9 @@ st.write("""
 This application predicts whether a student is likely to **Pass** or **Fail**.
 """)
 
-st.header("📊 Dataset Statistics Summary")
 try:
     # Load the dataset first
-    df = pd.read_csv("dataset.csv")
+    df = pd.read_csv("dataset.zip")
     
     st.header("📊 Dataset Statistics Summary")
     st.markdown("""
@@ -62,27 +61,45 @@ input_data = pd.DataFrame([{
     'class_participation': participation / 100.0,
     'total_score': total_score
 }])
-
+    
 if st.button("Predict"):
     # 1. Get raw probability scores from your model
     probabilities = model.predict_proba(input_data)[0]
-    
-    # 2. Extract the confidence percentage for passing (Class 1)
     pass_chance = probabilities[1] * 100
     
     st.header("Prediction Result")
-    
-    # 3. Dynamic logic to show realistic outcomes
-    if total_score >= 50 or pass_chance >= 40.0:
-        st.success("🎓 Student is likely to PASS")
-        st.info(f"📊 Model Confidence: {pass_chance:.1f}% Pass Probability")
+        
+    # 2. Determine a letter grade based on the score or probability threshold
+    # Using total_score from your input widgets (line 53)
+    if total_score >= 85:
+                grade = "A"
+                status = "success"
+    elif total_score >= 70:
+                grade = "B"
+                status = "success"
+    elif total_score >= 50:
+                grade = "C"
+                status = "warning"
+    elif total_score >= 40:
+                grade = "D"
+                status = "warning"
     else:
-        st.error("❌ Student is likely to FAIL")
-        st.info(f"📊 Model Confidence: {100 - pass_chance:.1f}% Fail Probability")
+                grade = "F"
+                status = "error"
+                
+            # 3. Display the final calculated grade layout   
+    if status == "success":
+                st.success(f"🎉 Predicted Grade: **{grade}**")
+    elif status == "warning":
+                st.warning(f"ℹ️ Predicted Grade: **{grade}**")
+    else:
+                st.error(f"❌ Predicted Grade: **{grade}**")
+                
+                st.info(f"Model Confidence: {pass_chance:.1f}% Pass Probability")
+
 
 st.header("📈 Model Information")
-
-st.write("- Machine Learning Algorithm: Best Model")
+st.write("- Machine Learning Algorithm: Best Model")  
 st.write("- Library: Scikit-learn")
 st.write("- Deployment: Streamlit")
 st.write("""
@@ -94,16 +111,15 @@ This application predicts a student's grade based on:
 """)
 
 st.header("Enter Student Details")
-
 st.markdown("""
 - **Dataset:** Student Performance Dataset
 - **Model:** Logistic Regression
 - **Features:**
-  - Student ID
-  - Weekly Self Study Hours
-  - Attendance Percentage
-  - Class Participation
-  - Total Score
- **Target:** Grade
+- Student ID
+- Weekly Self Study Hours
+- Attendance Percentage
+- Class Participation
+- Total Score
+**Target:** Grade
 """)
 
